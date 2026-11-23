@@ -70,6 +70,19 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--about);outline-offs
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:13px}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-inline-end:4px;vertical-align:-1px}
 .qn{position:fixed;left:50%;bottom:max(2vw,12px);transform:translateX(-50%);z-index:25;display:flex;gap:6px;padding:6px;border-radius:16px;background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,.18);width:min(520px,calc(100vw - 24px))}.qn .btn{flex:none}.qn #qe{flex:1;overflow:hidden;text-overflow:ellipsis}
+#joy{position:fixed;left:14px;bottom:14px;z-index:26;width:128px;height:128px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.25),rgba(255,255,255,.5));border:3px solid rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(0,0,0,.2);touch-action:none;display:none;transition:box-shadow .15s}
+#joy .kn{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:var(--card);border:4px solid var(--about);box-shadow:0 4px 10px rgba(0,0,0,.25);pointer-events:none}
+#joy i{position:absolute;width:0;height:0;border:9px solid transparent;opacity:.55;transition:opacity .1s,transform .1s}
+#joy .u{left:50%;top:6px;margin-left:-9px;border-bottom:11px solid #fff;border-top:0}
+#joy .dn{left:50%;bottom:6px;margin-left:-9px;border-top:11px solid #fff;border-bottom:0}
+#joy .lf{top:50%;left:6px;margin-top:-9px;border-right:11px solid #fff;border-left:0}
+#joy .rt{top:50%;right:6px;margin-top:-9px;border-left:11px solid #fff;border-right:0}
+#joy i.on{opacity:1;transform:scale(1.35)}
+#joy.act{box-shadow:0 0 0 6px color-mix(in srgb,var(--about) 45%,transparent),0 8px 24px rgba(0,0,0,.2)}
+#joy.act .kn{background:var(--about)}
+#joy .lb{position:absolute;left:50%;top:-26px;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:700;color:#fff;background:rgba(0,0,0,.45);padding:2px 8px;border-radius:8px;pointer-events:none}
+#joy.used .lb{display:none}
+.touch #joy{display:block}.touch .qn{left:156px;right:12px;width:auto;transform:none;bottom:28px}.touch .qn{left:154px;gap:4px;padding:4px}.touch .qn #qp,.touch .qn #qx{width:44px;padding:0;font-size:0}.touch .qn #qp::before{content:'‹';font-size:24px}.touch .qn #qx::before{content:'›';font-size:24px}.touch .qn #qe{font-size:15px;padding:0 8px}.touch .hud{display:none!important}.touch #mini{display:none}
 #mini{position:fixed;right:max(2vw,12px);bottom:max(2vw,12px);z-index:20;width:208px;height:136px;border-radius:12px;background:var(--grass);border:3px solid var(--card);box-shadow:0 6px 20px rgba(0,0,0,.15);overflow:hidden}
 #mini b{position:absolute;width:8px;height:8px;border-radius:2px;transform:translate(-50%,-50%)}
 #mini .dot{width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--ink)}
@@ -149,6 +162,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--about);outline-offs
   <div class="help legend" id="legend"></div>
 </div>
 <div id="mini"></div>
+<div id="joy" aria-label="이동 조이스틱"><span class="lb">끌어서 이동</span><i class="u"></i><i class="dn"></i><i class="lf"></i><i class="rt"></i><div class="kn"></div></div>
 <nav class="qn" aria-label="부스 이동"><button class="btn" id="qp">‹ 이전</button><button class="btn pri" id="qe"><span id="qt">첫 부스로</span></button><button class="btn" id="qx">다음 ›</button></nav>
 
 <aside id="list" aria-label="행사 목록">
@@ -270,10 +284,11 @@ const me=$('#me');let ax=150,ay=1530,tx=null,ty=null,pend=null,keys={},scale=1,c
 function fitScale(){scale=innerWidth<600?.62:innerWidth<1000?.8:1}
 fitScale();addEventListener('resize',fitScale);
 function cam(){const vw=innerWidth,vh=innerHeight;let cx=ax*scale-vw/2,cy=ay*scale-vh/2;cx=Math.max(0,Math.min(W*scale-vw,cx));cy=Math.max(-120,Math.min(H*scale-vh,cy));camX+=(cx-camX)*.15;camY+=(cy-camY)*.15;world.style.transform=`translate(${-camX}px,${-camY}px) scale(${scale})`}
-let near=null,cur=-1;
+let near=null,cur=-1,jx=0,jy=0;
 function tick(){let dx=0,dy=0;
  if(keys.ArrowLeft||keys.a)dx--;if(keys.ArrowRight||keys.d)dx++;if(keys.ArrowUp||keys.w)dy--;if(keys.ArrowDown||keys.s)dy++;
- if(dx||dy){tx=null;pend=null;const n=Math.hypot(dx,dy);ax+=dx/n*7;ay+=dy/n*7}
+ if(!dx&&!dy&&(jx||jy)){tx=null;pend=null;ax+=jx*9;ay+=jy*9;dx=jx;dy=jy}
+ else if(dx||dy){tx=null;pend=null;const n=Math.hypot(dx,dy);ax+=dx/n*7;ay+=dy/n*7}
  else if(tx!==null){const ddx=tx-ax,ddy=ty-ay,dist=Math.hypot(ddx,ddy);if(dist<8){tx=null;if(pend){const p=pend;pend=null;openRoom(p)}}else{ax+=ddx/dist*Math.min(9,dist);ay+=ddy/dist*Math.min(9,dist);dx=ddx}}
  ax=Math.max(40,Math.min(W-40,ax));ay=Math.max(80,Math.min(H-20,ay));
  me.style.left=ax+'px';me.style.top=ay+'px';me.classList.toggle('walk',!!(dx||dy||tx!==null));if(dx<0)me.classList.add('left');else if(dx>0)me.classList.remove('left');
@@ -327,10 +342,19 @@ $('#goShow').onclick=()=>{$('#intro').classList.add('hide');if(roomOpen())locati
 $('#startList').onclick=()=>{hideIntro();list.classList.add('open')};
 $('#start').onclick=()=>{$('#intro').classList.add('hide');document.body.classList.add('go');walkTo('declare')};
 camX=Math.max(0,ax*scale-innerWidth/2);camY=Math.max(0,Math.min(H*scale-innerHeight,ay*scale-innerHeight/2));
-function qtUpd(){const q=$('#qt');q.textContent=near?E[E.findIndex(e=>e.id===near)].t+' 들어가기':cur>=0?E[cur].t+'(으)로 가는 중':'첫 부스로'}
+function qtUpd(){const q=$('#qt');if(document.body.classList.contains('touch')){q.textContent=near?'들어가기':'이동 중…';if(!near&&cur<0)q.textContent='첫 부스로';return}q.textContent=near?E[E.findIndex(e=>e.id===near)].t+' 들어가기':cur>=0?E[cur].t+'(으)로 가는 중':'첫 부스로'}
 $('#qp').onclick=()=>{hideIntro();walkTo(E[Math.max(0,cur-1)].id)};
 $('#qx').onclick=()=>{hideIntro();walkTo(E[Math.min(E.length-1,cur+1)].id)};
 $('#qe').onclick=()=>{hideIntro();if(near)openRoom(near);else walkTo(E[Math.max(0,cur)].id)};
+if(matchMedia('(pointer:coarse)').matches||navigator.maxTouchPoints>0){document.body.classList.add('touch');document.querySelectorAll('.enter').forEach(e=>e.textContent='눌러서 들어가기')}
+const joy=$('#joy'),kn=joy.querySelector('.kn');let jid=null;
+function jset(ev){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let x=ev.clientX-cx,y=ev.clientY-cy;const L=Math.hypot(x,y),M=40;if(L>M){x=x/L*M;y=y/L*M}
+ kn.style.transform=`translate(${x}px,${y}px)`;const n=Math.min(1,L/M);jx=L>6?x/M:0;jy=L>6?y/M:0;
+ joy.querySelector('.u').classList.toggle('on',jy<-.35);joy.querySelector('.dn').classList.toggle('on',jy>.35);joy.querySelector('.lf').classList.toggle('on',jx<-.35);joy.querySelector('.rt').classList.toggle('on',jx>.35)}
+function jend(){jid=null;jx=jy=0;kn.style.transform='';joy.classList.remove('act');joy.querySelectorAll('i').forEach(i=>i.classList.remove('on'))}
+joy.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();hideIntro();jid=ev.pointerId;joy.setPointerCapture(jid);joy.classList.add('act','used');jset(ev)});
+joy.addEventListener('pointermove',ev=>{if(ev.pointerId===jid)jset(ev)});
+joy.addEventListener('pointerup',jend);joy.addEventListener('pointercancel',jend);
 function hideIntro(){$('#intro').classList.add('hide');document.body.classList.add('go')}
 render();requestAnimationFrame(tick);
 }
