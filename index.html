@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>매원 AI 캠퍼스 둘러보기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 초대장처럼 밝고 친근하게, 그러나 학교 공식 기록답게 정확하게
+   IDEA: 한 해의 행사가 부스로 늘어선 '매원 AI 캠퍼스' 게임 지도 — 길을 따라 3월에서 12월로 걸어간다
+   PICTURE: 탑다운 캠퍼스 맵 위의 아바타, 지붕 색으로 영역을 구분한 부스 19개, 끝에 성과발표회 무대
+   COLOUR/TYPE: 잔디 #9fd47a 바탕·아스팔트 길, About AI 코발트 / With AI 코랄 / All for AI 해바라기 / 기반 슬레이트, Jua + Noto Sans KR
+   LAYOUT: 상단 얇은 바(제목·초대 정보·목록), 화면 전체 맵, 부스 입장 시 전체 화면 세부 페이지 */
+:root{color-scheme:light dark;--bg:light-dark(#f6f7f2,#11161b);--ink:light-dark(#1b232b,#eef2f4);--sub:light-dark(#5a6670,#a7b3bc);--card:light-dark(#fff,#1b232b);--line:light-dark(#e3e7e0,#2a343d);
+--about:#2f5bea;--with:#ff6b4a;--all:#f2b300;--base:#3b4a5a;--soon:#e2457f;--grass:light-dark(#a6d77f,#2f4a2c);--grass2:light-dark(#93c96c,#283f26);--road:light-dark(#6e737a,#3d4249)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans KR",system-ui,sans-serif;overflow:hidden}
+h1,h2,h3,.jua{font-family:Jua,"Noto Sans KR",sans-serif;font-weight:400;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid var(--about);outline-offset:2px}
+/* top bar */
+.bar{position:fixed;inset:0 0 auto 0;z-index:30;display:flex;gap:12px;align-items:center;padding:10px max(2vw,12px);background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.logo{display:flex;flex-direction:column;line-height:1.15}
+.logo b{font-family:Jua;font-weight:400;font-size:22px}
+.logo span{font-size:13px;color:var(--sub)}
+.inv{margin-inline-start:auto;display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:12px;background:light-dark(#fff1f5,#3a1f2a);font-size:14px}
+.inv strong{color:var(--soon)}
+.btn{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:15px;white-space:nowrap}
+.btn.pri{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* map */
+#view{position:fixed;inset:0;overflow:hidden;background:var(--grass2);touch-action:none}
+#world{position:absolute;left:0;top:0;width:2600px;height:1700px;transform-origin:0 0;background:
+ radial-gradient(circle at 20% 30%,var(--grass) 0 18%,transparent 19%),radial-gradient(circle at 70% 60%,var(--grass) 0 22%,transparent 23%),var(--grass);will-change:transform}
+#road{position:absolute;inset:0;pointer-events:none}
+.tree{position:absolute;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7cc35a,#3f8f3a 70%);box-shadow:6px 10px 0 rgba(0,0,0,.14)}
+.zone{position:absolute;font-family:Jua;font-size:30px;color:rgba(255,255,255,.75);letter-spacing:.5px;pointer-events:none;text-shadow:0 2px 0 rgba(0,0,0,.12)}
+.booth{position:absolute;width:210px;transform:translate(-50%,-100%);border:0;background:none;padding:0;text-align:center}
+.booth .house{position:relative;background:var(--card);border-radius:14px 14px 10px 10px;box-shadow:0 14px 0 -4px rgba(0,0,0,.18),0 0 0 3px var(--c) inset;overflow:hidden;transition:transform .2s}
+.booth .roof{height:34px;background:var(--c);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-family:Jua;font-size:17px}
+.booth .roof small{font-family:"Noto Sans KR";font-size:12px;opacity:.9;font-weight:700}
+.booth .win{height:104px;background:#cfd6dc center/cover no-repeat;margin:8px 10px;border-radius:8px}
+.booth .ph{display:grid;place-items:center;color:#fff;font-family:Jua;font-size:22px;background:repeating-linear-gradient(135deg,var(--c) 0 14px,color-mix(in srgb,var(--c) 80%,#fff) 14px 28px)}
+.booth .sign{display:block;margin-top:12px;padding:6px 10px;border-radius:10px;background:var(--card);font-weight:700;font-size:15px;line-height:1.3;box-shadow:0 2px 0 rgba(0,0,0,.12)}
+.booth.big{width:320px}.booth.big .win{height:150px;font-size:26px;line-height:1.3;text-align:center}.marq{display:block;margin-bottom:10px;font-family:Jua;font-size:22px;color:#fff;background:var(--soon);padding:6px 14px;border-radius:12px;box-shadow:0 6px 0 rgba(0,0,0,.18)}
+.booth.soon .house{box-shadow:0 14px 0 -4px rgba(0,0,0,.18),0 0 0 3px var(--soon) inset;outline:3px dashed var(--soon);outline-offset:4px}
+.booth:hover .house,.booth.near .house{transform:translateY(-6px)}
+.enter{position:absolute;left:50%;top:-50px;transform:translateX(-50%);white-space:nowrap;background:var(--ink);color:var(--bg);padding:6px 14px;border-radius:999px;font-weight:700;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+.booth.near .enter{opacity:1}
+.gate{position:absolute;font-family:Jua;color:#fff;background:var(--base);padding:8px 18px;border-radius:12px;font-size:20px;transform:translate(-50%,-50%);box-shadow:0 8px 0 rgba(0,0,0,.2)}
+/* avatar */
+#me{position:absolute;width:44px;height:64px;transform:translate(-50%,-100%);pointer-events:none;z-index:5}
+#me .bd{position:absolute;left:8px;top:26px;width:28px;height:30px;border-radius:12px 12px 8px 8px;background:var(--about)}
+#me .hd{position:absolute;left:9px;top:0;width:26px;height:26px;border-radius:50%;background:#ffd9b5;box-shadow:inset 0 9px 0 #2b2b2b}
+#me .bag{position:absolute;left:2px;top:30px;width:10px;height:20px;border-radius:4px;background:var(--with)}
+#me .lg{position:absolute;top:54px;width:9px;height:10px;border-radius:3px;background:#263238}
+#me .l1{left:12px}#me .l2{left:23px}
+#me.walk .l1{animation:st .3s infinite alternate}#me.walk .l2{animation:st .3s infinite alternate-reverse}
+#me.left{transform:translate(-50%,-100%) scaleX(-1)}
+#me::after{content:"";position:absolute;left:4px;bottom:-6px;width:36px;height:10px;border-radius:50%;background:rgba(0,0,0,.2);z-index:-1}
+@keyframes st{to{transform:translateY(-4px)}}
+#me .tag{position:absolute;left:50%;top:-30px;transform:translateX(-50%);white-space:nowrap;background:#fff;color:#1b232b;font-size:12px;font-weight:700;padding:2px 8px;border-radius:8px}
+#me.left .tag{transform:translateX(-50%) scaleX(-1)}
+/* hud */
+.hud{position:fixed;left:max(2vw,12px);bottom:max(2vw,12px);z-index:20;display:flex;flex-direction:column;gap:8px;max-width:min(380px,calc(100vw - 24px))}
+.help{background:var(--card);border-radius:14px;padding:10px 14px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:13px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-inline-end:4px;vertical-align:-1px}
+.qn{position:fixed;left:50%;bottom:max(2vw,12px);transform:translateX(-50%);z-index:25;display:flex;gap:6px;padding:6px;border-radius:16px;background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,.18);width:min(520px,calc(100vw - 24px))}.qn .btn{flex:none}.qn #qe{flex:1;overflow:hidden;text-overflow:ellipsis}
+#mini{position:fixed;right:max(2vw,12px);bottom:max(2vw,12px);z-index:20;width:208px;height:136px;border-radius:12px;background:var(--grass);border:3px solid var(--card);box-shadow:0 6px 20px rgba(0,0,0,.15);overflow:hidden}
+#mini b{position:absolute;width:8px;height:8px;border-radius:2px;transform:translate(-50%,-50%)}
+#mini .dot{width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--ink)}
+/* list drawer */
+#list{position:fixed;top:0;right:0;bottom:0;z-index:40;width:min(400px,100vw);background:var(--card);transform:translateX(105%);transition:transform .25s;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(0,0,0,.2)}
+#list.open{transform:none}
+#list header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
+#list ol{list-style:none;margin:0;padding:8px;overflow:auto}
+#list li button{width:100%;display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;text-align:start;border:0;background:none;padding:8px;border-radius:10px;min-height:56px}
+#list li button:hover{background:var(--bg)}
+#list .d{font-weight:700;font-size:13px;color:#fff;background:var(--c);border-radius:8px;text-align:center;padding:4px 0}
+#list .t{font-weight:700;line-height:1.3}
+#list .s{display:block;font-size:13px;color:var(--sub);font-weight:400}
+/* detail */
+#room{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;display:none}
+#room.open{display:block}
+.rtop{position:sticky;top:0;z-index:2;display:flex;gap:8px;align-items:center;padding:10px max(3vw,12px);background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.rtop .sp{flex:1}
+.hero{position:relative;height:min(52vh,460px);background:var(--c) center/cover no-repeat}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(0,0,0,.65))}
+.hero .cap{position:absolute;left:max(4vw,16px);right:max(4vw,16px);bottom:24px;z-index:1;color:#fff;max-width:1100px}
+.hero h2{font-size:clamp(30px,5vw,50px);line-height:1.08;text-wrap:balance}
+.chip{display:inline-block;padding:4px 12px;border-radius:999px;background:var(--c);color:#fff;font-weight:700;font-size:14px;margin-bottom:10px}
+.chip.s{background:var(--soon);margin-inline-start:6px}
+.hero.ph{background:repeating-linear-gradient(135deg,var(--c) 0 26px,color-mix(in srgb,var(--c) 82%,#fff) 26px 52px)}
+.body{max-width:1100px;margin:0 auto;padding:28px max(4vw,16px) 60px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:32px}
+.body p.lead{font-size:18px;margin:0 0 16px}
+.body ul{margin:0;padding-inline-start:20px}.body li{margin:4px 0}
+.facts{background:var(--card);border-radius:16px;padding:18px 20px;border:1px solid var(--line);align-self:start}
+.facts dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 14px}
+.facts dt{color:var(--sub);font-size:14px;white-space:nowrap}.facts dd{margin:0;font-weight:500}
+.gal{max-width:1100px;margin:0 auto;padding:0 max(4vw,16px) 40px}
+.gal h3{font-size:24px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,44vw),1fr));gap:10px}
+.grid button{border:0;padding:0;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:#ccc}
+.grid img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.grid button:hover img{transform:scale(1.04)}
+.note{font-size:13px;color:var(--sub);margin-top:10px}
+.nav2{max-width:1100px;margin:0 auto;padding:0 max(4vw,16px) 60px;display:flex;gap:10px;flex-wrap:wrap}
+.nav2 .btn{flex:1 1 220px;text-align:start;padding:10px 16px;height:auto}
+.nav2 small{display:block;color:var(--sub);font-weight:400}
+#lb{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.9);display:none;place-items:center}
+#lb.open{display:grid}
+#lb img{max-width:94vw;max-height:84vh;border-radius:8px}
+#lb .x{position:absolute;top:12px;right:12px;background:#fff;color:#111;border:0}
+#lb .pv,#lb .nx{position:absolute;top:50%;transform:translateY(-50%);background:#fff;color:#111;border:0}
+#lb .pv{left:12px}#lb .nx{right:12px}
+/* intro card */
+#intro{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(10,20,15,.45);padding:16px}
+#intro .card{background:var(--card);border-radius:22px;max-width:560px;padding:28px;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+#intro h1{font-size:clamp(28px,5vw,40px);line-height:1.1}
+#intro .slo{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+#intro .slo span{padding:4px 12px;border-radius:999px;color:#fff;font-weight:700;font-size:14px}
+#intro .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0}
+#intro .stats div{background:var(--bg);border-radius:12px;padding:10px;text-align:center}
+#intro .stats b{display:block;font-family:Jua;font-weight:400;font-size:26px}
+#intro .stats span{font-size:13px;color:var(--sub)}
+.hide{display:none!important}
+@media(max-width:860px){.hud{bottom:84px}.inv{display:none}#goShow{display:none}.body{grid-template-columns:1fr}.qn{position:fixed;left:50%;bottom:max(2vw,12px);transform:translateX(-50%);z-index:25;display:flex;gap:6px;padding:6px;border-radius:16px;background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,.18);width:min(520px,calc(100vw - 24px))}.qn .btn{flex:none}.qn #qe{flex:1;overflow:hidden;text-overflow:ellipsis}
+#mini{display:none}}
+@media(max-width:600px){#intro .card{padding:22px}#intro .stats b{font-size:20px;white-space:nowrap}#intro .stats span{font-size:12px}.hud{bottom:84px}body.go .help{display:none}.bar{padding:8px 10px;gap:6px}.bar .btn{padding:0 12px;font-size:14px}.logo span{display:none}.logo b{font-size:19px}.help .k{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="view"><div id="world"><svg id="road" width="2600" height="1700"></svg></div></div>
+
+<header class="bar">
+  <div class="logo"><b>매원 AI 캠퍼스</b><span>매원고등학교 2026 AI중점학교 둘러보기</span></div>
+  <div class="inv"><span><strong>성과발표회</strong> 12. 11.(금) 14:00 · 수원컨벤션센터 4층</span></div>
+  <button class="btn" id="goShow">발표회 부스로</button>
+  <button class="btn pri" id="openList">행사 목록</button>
+</header>
+
+<div class="hud">
+  <div class="help" id="help"><b>둘러보는 법</b> · 길을 누르면 걸어가요. 부스를 누르면 바로 들어가요. 아래 ‹ 이전 · 다음 › 버튼으로 차례대로 둘러볼 수도 있어요.<span class="k"> 키보드는 방향키·WASD로 이동, Enter로 입장.</span></div>
+  <div class="help legend" id="legend"></div>
+</div>
+<div id="mini"></div>
+<nav class="qn" aria-label="부스 이동"><button class="btn" id="qp">‹ 이전</button><button class="btn pri" id="qe"><span id="qt">첫 부스로</span></button><button class="btn" id="qx">다음 ›</button></nav>
+
+<aside id="list" aria-label="행사 목록">
+  <header><h3 class="jua" style="font-size:24px">3월부터 12월까지</h3><button class="btn" id="closeList">닫기</button></header>
+  <ol id="items"></ol>
+</aside>
+
+<section id="room" aria-live="polite"></section>
+<div id="lb" role="dialog" aria-label="사진 크게 보기"><img alt=""><button class="btn x">닫기</button><button class="btn pv" aria-label="이전 사진">‹</button><button class="btn nx" aria-label="다음 사진">›</button></div>
+
+<div id="intro" role="dialog" aria-label="안내">
+  <div class="card">
+    <h1>매원 AI 캠퍼스에<br>오신 것을 환영합니다</h1>
+    <div class="slo"><span style="background:var(--with)">With AI</span><span style="background:var(--about)">About AI</span><span style="background:var(--all);color:#1b232b">All for AI</span></div>
+    <p style="margin:0">2026년 AI중점학교로 첫걸음을 뗀 매원고등학교의 한 해를 캠퍼스 지도로 꾸몄습니다. 정문에서 출발해 길을 따라 걸으며 3월부터 12월까지의 행사 부스에 들어가 보세요. 길 끝에서는 <b>12월 11일 성과발표회</b>가 기다립니다.</p>
+    <div class="stats">
+      <div><b>6과목</b><span>AI 관련 과목 운영</span></div>
+      <div><b>15개교</b><span>관내 메이커톤 참가</span></div>
+      <div><b>11개 부서</b><span>AI 활용 협의</span></div>
+    </div>
+    <button class="btn pri" id="start" style="width:100%">정문에서 출발하기</button>
+    <button class="btn" id="startList" style="width:100%;margin-top:8px">행사 목록으로 바로 보기</button>
+  </div>
+</div>
+
+<script>
+{
+const Z={base:['기반','var(--base)'],about:['About AI','var(--about)'],with:['With AI','var(--with)'],all:['All for AI','var(--all)']};
+const E=[
+{id:'declare',z:'base',m:'4월',d:'2026-04-27',date:'2026. 4. 27.(월) 13:00',t:'AI중점학교 선포식',where:'본교 시청각실',who:'전체 교직원',
+ lead:'AI중점학교 선정을 알리고, 1년간의 운영 방향을 전 교직원이 함께 나눈 출발점입니다.',
+ pts:['AI중점학교 운영 방향과 AI 교육 공간 구축 일정 공유','교직원 협력 분위기 조성','학생·학부모 대상 AI중점학교 운영 안내 및 홍보'],img:['declare1','declare3','declare4']},
+{id:'deepdive',z:'about',m:'5~7월',d:'2026-05-06',date:'2026. 5. 6. ~ 7. 15.(수) 16:00~18:30, 8회',t:'AI융합 딥다이브 캠프',where:'본교 컴퓨터실·AI융합정보실(2개 분반)',who:'1~2학년 신청 학생 30명 내외',
+ lead:'외부 AI·SW 전문 강사 5명이 학교로 찾아와 8주 동안 밀착 멘토링한 실습 중심 심화 캠프입니다.',
+ pts:['인공지능 알고리즘 이해와 머신러닝 실습','Python 기반 데이터 분석과 AI 모델 학습','실생활 문제 해결을 위한 AI 융합 프로젝트','결과물 공유와 전문가 피드백, 탐구 결과 포스터 전시'],img:['deepdive1','deepdive2','deepdive3','deepdive4']},
+{id:'vibe',z:'with',m:'8월',d:'2026-08-05',date:'2026. 8. 5.(수) 10:00~13:00',t:'생성형 AI 바이브코딩 교원 연수',where:'본교',who:'본교 교사 희망자',
+ lead:'AI 기반 수업을 위해 생성형 인공지능으로 직접 프로그램을 만들어 보는 교원 연수입니다.',
+ pts:['생성형 AI를 활용한 바이브코딩 실습','교과 수업에 바로 쓰는 도구 만들기'],img:['vibe1','vibe2']},
+{id:'moon',z:'all',m:'8월',d:'2026-08-26',date:'2026. 8. 26.(수) 16:10~18:10',t:'서울대 문병로 교수 초청 특강',where:'본교 시청각실',who:'교내외 교사·학부모 40명',
+ lead:'「AI 시대에 필요한 교육」을 주제로 서울대학교 컴퓨터공학부 문병로 교수를 모신 특강을 관내 교사와 학부모에게 열었습니다.',
+ pts:['인공지능 기술의 현재와 미래, 사회 변화의 이해','AI 시대에 필요한 창의적 사고와 문제 해결 역량','자녀의 적성과 역량을 고려한 진로·진학 지도 방향'],img:['moon1','moon2','moon3','moon4','moonP1']},
+{id:'teacher',z:'all',m:'8~11월',d:'2026-08-27',date:'8. 27. · 9. 15. · 10. 6. · 11. 3. (총 4회)',t:'지역 정보교사 역량강화 연수',where:'본교 2층 컴퓨터실',who:'수원 관내 정보교사',
+ lead:'AI중점학교로서 지역 정보교사들이 함께 배우는 연수를 네 차례 열었습니다. 강사는 경기과학고등학교 선생님들이 맡았습니다.',
+ pts:['1~3회: KOISTUDY를 활용한 온라인 저지(OJ) 수업과 알고리즘 교육','4회(11. 3., 4시간): 인공지능 기초 실습과 원리 탐구'],img:['teacher1','teacher2','teacher3']},
+{id:'lab',z:'base',m:'9월',d:'2026-09-04',date:'2026. 9. 4.(금) 16:10~16:50',t:'AI·Computer LAB 개소식',where:'본관 2층 AI·Computer LAB',who:'교직원, 학부모 대표, 교육청 담당자',
+ lead:'여름방학 동안 노후 컴퓨터실을 AI·Computer LAB(131.5㎡)으로 새로 꾸미고, 문을 여는 날을 함께 기념했습니다.',
+ pts:['테이프 커팅(교장·교감·행정실장·학부모 대표·교육청 담당자)','구축 현황, 주요 시설·장비, 향후 운영 계획 안내','시설 둘러보기와 질의응답','이후 정규수업·캠프·지역 연수 공간으로 활용'],img:['lab1','lab2','lab3','lab4']},
+{id:'dept',z:'with',m:'9~10월',d:'2026-09-07',date:'2026. 8. 31. ~ 10. 8.',t:'부서별 AI 활용 방안 협의회',where:'부서별',who:'11개 부서 교직원',
+ lead:'AI중점학교는 정보 수업만의 일이 아닙니다. 모든 부서가 각자의 업무에서 AI를 어떻게 쓸지 협의했습니다.',
+ pts:['AI 기반 수업역량·교육활동 지원(교무기획부)','교육과정부·교육정보부, 교육연구부 협의','AI와 연계한 학생 상담·생활지도 강화','AI 기반 학교폭력예방교육 활동 방안','AI 기반 융합교육 활용 방안(AI융합교육부)','1학년부·3학년부·자치안전부·체육건강부 협의'],img:['dept3','dept7','dept1','dept2','dept4','dept5','dept6']},
+{id:'math',z:'with',m:'9월',d:'2026-09-09',date:'2026. 9. 2. 오리엔테이션, 9. 9.~ 제작',t:'미래학교 수학정보 프로젝트',where:'본교',who:'1·2학년 희망자 20명 내외',
+ lead:'수학 현상을 프로그래밍으로 모델링해 학생이 직접 시뮬레이션을 설계하고 만든 융합 프로젝트입니다.',
+ pts:['1단계 시뮬레이션 환경 설계','2단계 시뮬레이션 제작 및 실험','3단계 완성 및 보완','4단계 발표와 소감문 제출'],img:['math2','math3','math1','mathP1']},
+{id:'farm',z:'with',m:'2학기',d:'2026-09-09',date:'2026학년도 2학기',t:'스마트팜 R&E',where:'본교',who:'1학년 학생 연구팀, 지도교사 2명',
+ lead:'라즈베리파이 피코로 스마트팜 시스템을 직접 만들고, 빛의 색(RGB)에 따라 식물이 어떻게 자라는지 관찰한 연구 활동입니다.',
+ pts:['센서·릴레이·펌프를 연결한 수경재배 시스템 구현','RGB 광원 조건별 생장 비교 관찰','주말을 활용한 장기 관찰과 기록'],img:['farm9','farm10','farm6','farm7','farm8','farm1','farm2','farm4']},
+{id:'claude',z:'with',m:'9월',d:'2026-09-29',date:'2026. 9. 29.',t:'클로드 활용 바이브코딩 교원 연수',where:'본교',who:'본교 교사 희망자',
+ lead:'8월 연수에 이어, 생성형 AI 클로드로 수업과 업무에 쓸 도구를 직접 만드는 두 번째 교원 연수를 열었습니다.',
+ pts:['대화로 코드를 만드는 바이브코딩 실습','교과별 수업·업무 활용 사례 만들기'],img:['claude2','claude1']},
+{id:'nlp',z:'about',m:'10월',d:'2026-10-14',date:'2026. 10. 14.(수) 16:00~19:00',t:'자연어처리 특강',where:'본교 2층 AI·Computer LAB',who:'1·2학년 희망자 20명 내외',
+ lead:'「AI는 글의 관점을 읽을 수 있을까?」 디지털 휴머니티 교실에서 인공지능의 언어 이해 원리를 탐구했습니다.',
+ pts:['자연어처리 AI가 글의 관점과 의도를 분석하는 방법','사람의 글 읽기와 AI 분석 방식 비교','자연어처리 기술의 가능성과 한계, 비판적 읽기'],img:['nlp1','nlp2','nlpP1']},
+{id:'fusion',z:'with',m:'10월',d:'2026-10-17',date:'2026. 10. 17.(토) 09:00~16:30',t:'AI 융합교육 프로젝트',where:'본교 AI·Computer LAB, 생물실험실',who:'1·2학년 신청 학생 40명',
+ lead:'하루 동안 두 갈래의 AI 융합 실험을 운영했습니다. 실험 설계부터 데이터 해석, AI 분석까지 직접 경험합니다.',
+ pts:['인공지능(20명): 레고 마인드스톰으로 배우는 인공지능 원리(선형회귀)','의생명(20명): SDS-PAGE와 쿠마시 염색으로 단백질 발현 비교'],img:['fusion1','fusion2','fusion3','fusion4','fusion5','fusion6','fusion7','fusionP1']},
+{id:'car',z:'about',m:'10월',d:'2026-10-18',date:'2026. 10. 18.',t:'AI 객체인식 자율주행 캠프',where:'본교 AI·Computer LAB',who:'1학년 신청 학생',
+ lead:'NVIDIA Jetson Orin Nano로 컴퓨터 비전과 딥러닝을 배우고, 사물을 알아보는 자율주행 자동차를 직접 달리게 했습니다.',
+ pts:['피지컬 AI 장비(Jetson Orin Nano) 설정과 실습','딥러닝 기반 객체인식 모델 이해','자율주행 프로젝트 구현과 주행'],img:['car3','car6','car1','car2','carP1']},
+{id:'expo',z:'all',m:'10월',d:'2026-10-21',date:'2026. 10. 21.(수) 16:00~18:00',t:'수학·과학·정보 체험전',where:'5층 과학실, AI·Computer LAB',who:'1·2학년 희망 학생',
+ lead:'다섯 개 동아리 학생들이 직접 기획하고 운영한, 수학·과학·정보를 만지고 보고 즐기는 축제 한마당입니다.',
+ pts:['수학쟁이·과학쟁이·과학실험반·뉴런·리턴제로 동아리 운영','STEAM 주제 체험 부스 7개','운영 학생은 나눔·소통을, 참가 학생은 체험을'],img:['expo2','expo5','expo6','expo1','expo3','expo4','expo7']},
+{id:'maker',z:'all',m:'10~11월',d:'2026-10-30',date:'2026. 10. 30.(금) ~ 11. 1.(일), 2박 3일',t:'수원 고교 피지컬 AI 메이커톤',where:'본교 강당',who:'수원 관내 15개 고교 148명(49팀)',
+ lead:'고색고등학교와 함께 주관한 [SDGs 문제해결] 메이커톤. 라즈베리파이 피코로 지속가능발전목표를 해결하는 피지컬 AI 작품을 만들었습니다.',
+ pts:['1일차: 개회식, 안전교육, 라즈베리파이 피코 기초 교육','2일차: 아이디어·설계, 프로토타입 제작과 멘토링','3일차: 작품 완성, 발표와 시상','관내 학교·학생 간 교류의 장'],img:['makerG','maker3','maker6','maker4','maker5','maker1','maker2','makerP1']},
+{id:'parent',z:'all',m:'11월',d:'2026-11-25',date:'2026. 11. 25.(수) 16:00~18:00',t:'학부모와 함께하는 생성형 AI 실습',where:'본교 2층 AI·Computer LAB',who:'본교 학부모 25명 내외',
+ lead:'학부모님이 생성형 AI를 직접 써 보고, 자녀의 진로 탐구를 함께 고민하는 실습 연수입니다.',
+ pts:['생성형 AI 실습','AI로 자녀의 관심 분야 탐구 주제 찾기','AI 윤리와 학업 활용 시 유의사항'],img:[]},
+{id:'middle',z:'all',m:'11월',d:'2026-11-28',date:'2026. 11. 28.(토) 09:00~16:30',t:'중학생 대상 인공지능 캠프',where:'본교 AI·Computer LAB',who:'수원 관내 중학교 3학년 20명',
+ lead:'AI중점학교의 성과를 지역 중학생과 나눕니다. 규칙기반 인공지능 로봇으로 AI가 판단하고 움직이는 원리를 체험합니다.',
+ pts:['센서 입력 → 규칙 판단 → 동작 출력 흐름 설계','규칙기반 AI의 장점과 한계 탐구','학습기반 인공지능으로 이어지는 AI 소양'],img:['middleP1']},
+{id:'show',z:'base',m:'12월',d:'2026-12-11',date:'2026. 12. 11.(금) 14:00~17:00',t:'2026 성과발표회',where:'수원컨벤션센터 4층',who:'교직원, 학생·학부모 대표, 학교운영위원회, 교육청 및 관내 교직원',big:1,
+ lead:'AI중점학교·AI교육 코디네이터·디지털 튜터·디지털 창의역량 실천학교의 1년 성과를 함께 나누는 자리입니다. 여러분을 초대합니다.',
+ pts:['1년간의 운영 성과와 우수 사례 발표','학생 AI 활동 성과와 교사 역량 강화 사례 발표','차년도 AI 교육 운영 방향 공유'],img:[]},
+{id:'code',z:'about',m:'12월',d:'2026-12-16',date:'2026. 12. 16.(수) 14:00~17:30',t:'고색-매원 연합 코드 챌린지',where:'고색고등학교 2층 AI 융합교실',who:'두 학교 2~3인 1팀, 총 20팀 내외',
+ lead:'Go!Mae!Solve! 두 AI중점학교 학생들이 모여 코딩 문제를 풀며 실력을 겨루고 서로 배우는 연합 대회입니다.',
+ pts:['KOISTUDY 온라인 저지로 문제 풀이·자동 채점','알고리즘의 적절성, 코드 정확성과 효율성까지 평가','외부 SW·알고리즘 전문가 멘토링'],img:[]}
+];
+// positions along a serpentine road
+const P=[[300,1460],[640,1460],[980,1460],[1320,1460],[1660,1460],[2080,1180],
+ [1840,960],[1500,960],[1160,960],[820,960],[480,960],
+ [300,560],[600,560],[900,560],[1200,560],[1500,560],[1800,560],[2130,560],[2460,560]];
+const W=2600,H=1700,today=new Date(new Date().toDateString());
+const $=s=>document.querySelector(s),world=$('#world'),view=$('#view');
+const isSoon=e=>new Date(e.d+'T00:00')>today;
+const dday=e=>Math.round((new Date(e.d+'T00:00')-today)/864e5);
+const col=e=>Z[e.z][1];
+// road
+const pts=[[120,1560]].concat(P.map(p=>[p[0],p[1]+75]));
+let dpath=`M${pts[0][0]} ${pts[0][1]}`;for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i];dpath+=` Q${a[0]} ${b[1]} ${(a[0]+b[0])/2} ${b[1]} T${b[0]} ${b[1]}`}
+$('#road').innerHTML=`<path d="${dpath}" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="96" stroke-linecap="round" stroke-linejoin="round" transform="translate(0,8)"/><path d="${dpath}" fill="none" stroke="var(--road)" stroke-width="90" stroke-linecap="round" stroke-linejoin="round"/><path d="${dpath}" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="5" stroke-dasharray="26 24"/>`;
+// decor
+const trees=[[120,1180],[220,1300],[1150,1250],[1900,1300],[2450,1420],[2450,900],[150,760],[1300,760],[2250,820],[600,1200],[150,300],[900,300],[1600,330],[1650,250],[2500,620],[1500,1600],[800,1640]];
+let html=trees.map(([x,y])=>`<div class="tree" style="left:${x}px;top:${y}px"></div>`).join('');
+html+=`<div class="gate" style="left:150px;top:1590px">정문 · 3월 출발</div>`;
+html+=`<div class="zone" style="left:180px;top:1080px">1학기</div><div class="zone" style="left:2120px;top:700px">2학기</div><div class="zone" style="left:1900px;top:120px">겨울</div>`;
+html+=E.map((e,i)=>{const [x,y]=P[i],s=isSoon(e),im=e.img[0];
+ return `<button class="booth${e.big?' big':''}${s?' soon':''}" id="b-${e.id}" style="left:${x}px;top:${y}px;--c:${col(e)}" aria-label="${e.t} 부스 들어가기">
+ ${e.big?'<span class="marq">여러분을 초대합니다</span>':''}<span class="enter">Enter · 들어가기</span>
+ <div class="house"><div class="roof"><span>${e.m}</span><small>${s?'D-'+dday(e):Z[e.z][0]}</small></div>
+ ${im?`<div class="win" style="background-image:url(img/${im}.jpg)"></div>`:`<div class="win ph">${e.big?'12. 11.<br>수원컨벤션센터':s?'곧 열려요':'AI'}</div>`}</div>
+ <span class="sign">${e.t}</span></button>`}).join('');
+html+=`<div id="me"><span class="tag">방문객</span><div class="bag"></div><div class="bd"></div><div class="hd"></div><div class="lg l1"></div><div class="lg l2"></div></div>`;
+world.insertAdjacentHTML('beforeend',html);
+$('#legend').innerHTML=Object.values(Z).map(([n,c])=>`<span><i style="background:${c}"></i>${n}</span>`).join('')+`<span><i style="background:var(--soon)"></i>예정</span>`;
+$('#mini').innerHTML=E.map((e,i)=>`<b style="left:${P[i][0]/W*100}%;top:${P[i][1]/H*100}%;background:${isSoon(e)?'var(--soon)':col(e)}"></b>`).join('')+'<b class="dot" id="md"></b>';
+$('#items').innerHTML=E.map(e=>`<li><button data-go="${e.id}" style="--c:${isSoon(e)?'var(--soon)':col(e)}"><span class="d">${e.m}</span><span class="t">${e.t}<span class="s">${e.date}${isSoon(e)?' · 예정':''}</span></span></button></li>`).join('');
+// avatar & camera
+const me=$('#me');let ax=150,ay=1530,tx=null,ty=null,pend=null,keys={},scale=1,camX=0,camY=0;
+function fitScale(){scale=innerWidth<600?.62:innerWidth<1000?.8:1}
+fitScale();addEventListener('resize',fitScale);
+function cam(){const vw=innerWidth,vh=innerHeight;let cx=ax*scale-vw/2,cy=ay*scale-vh/2;cx=Math.max(0,Math.min(W*scale-vw,cx));cy=Math.max(-120,Math.min(H*scale-vh,cy));camX+=(cx-camX)*.15;camY+=(cy-camY)*.15;world.style.transform=`translate(${-camX}px,${-camY}px) scale(${scale})`}
+let near=null,cur=-1;
+function tick(){let dx=0,dy=0;
+ if(keys.ArrowLeft||keys.a)dx--;if(keys.ArrowRight||keys.d)dx++;if(keys.ArrowUp||keys.w)dy--;if(keys.ArrowDown||keys.s)dy++;
+ if(dx||dy){tx=null;pend=null;const n=Math.hypot(dx,dy);ax+=dx/n*7;ay+=dy/n*7}
+ else if(tx!==null){const ddx=tx-ax,ddy=ty-ay,dist=Math.hypot(ddx,ddy);if(dist<8){tx=null;if(pend){const p=pend;pend=null;openRoom(p)}}else{ax+=ddx/dist*Math.min(9,dist);ay+=ddy/dist*Math.min(9,dist);dx=ddx}}
+ ax=Math.max(40,Math.min(W-40,ax));ay=Math.max(80,Math.min(H-20,ay));
+ me.style.left=ax+'px';me.style.top=ay+'px';me.classList.toggle('walk',!!(dx||dy||tx!==null));if(dx<0)me.classList.add('left');else if(dx>0)me.classList.remove('left');
+ let best=null,bd=150;E.forEach((e,i)=>{const d=Math.hypot(P[i][0]-ax,P[i][1]+70-ay);if(d<bd){bd=d;best=e.id}});
+ if(best!==near){near&&$('#b-'+near).classList.remove('near');near=best;near&&$('#b-'+near).classList.add('near');if(near){cur=E.findIndex(e=>e.id===near)}qtUpd()}
+ const md=$('#md');md.style.left=ax/W*100+'%';md.style.top=ay/H*100+'%';
+ cam();requestAnimationFrame(tick)}
+function walkTo(id){const i=E.findIndex(e=>e.id===id);cur=i;qtUpd();tx=P[i][0];ty=P[i][1]+82}
+view.addEventListener('click',ev=>{if(roomOpen())return;const b=ev.target.closest('.booth');if(b){const id=b.id.slice(2);walkTo(id);pend=id;return}
+ tx=(ev.clientX+camX)/scale;ty=(ev.clientY+camY)/scale;pend=null});
+addEventListener('keydown',ev=>{if($('#lb').classList.contains('open')){if(ev.key==='Escape')lbClose();if(ev.key==='ArrowRight')lbGo(1);if(ev.key==='ArrowLeft')lbGo(-1);return}
+ if(roomOpen()){if(ev.key==='Escape')location.hash='';return}
+ if(!$('#intro').classList.contains('hide'))return;
+ const k=ev.key.length===1?ev.key.toLowerCase():ev.key;
+ if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','w','a','s','d'].includes(k)){keys[k]=1;ev.preventDefault()}
+ if((k==='Enter'||k===' ')&&near&&!ev.target.closest('button')){openRoom(near);ev.preventDefault()}});
+addEventListener('keyup',ev=>{const k=ev.key.length===1?ev.key.toLowerCase():ev.key;keys[k]=0});
+// rooms
+const room=$('#room');const roomOpen=()=>room.classList.contains('open');
+function openRoom(id){location.hash=id}
+function render(){const id=location.hash.slice(1),i=E.findIndex(e=>e.id===id);
+ if(i<0){room.classList.remove('open');room.innerHTML='';return}
+ const e=E[i],s=isSoon(e),pv=E[i-1],nx=E[i+1],c=col(e);
+ ax=P[i][0];ay=P[i][1]+82;tx=null;pend=null;$('#intro').classList.add('hide');
+ room.style.setProperty('--c',c);
+ room.innerHTML=`<div class="rtop"><button class="btn" id="back">← 캠퍼스로 돌아가기</button><span class="sp"></span><span class="jua" style="font-size:18px">${i+1} / ${E.length}</span></div>
+ <div class="hero${e.img[0]?'':' ph'}" style="${e.img[0]?`background-image:url(img/${e.img[0]}.jpg)`:''}"><div class="cap"><span class="chip">${Z[e.z][0]}</span>${s?`<span class="chip s">예정 · D-${dday(e)}</span>`:''}<h2>${e.t}</h2><div style="margin-top:6px;font-weight:500">${e.date}</div></div></div>
+ <div class="body"><div><p class="lead">${e.lead}</p><ul>${e.pts.map(p=>`<li>${p}</li>`).join('')}</ul></div>
+ <div class="facts"><dl><dt>일시</dt><dd>${e.date}</dd><dt>장소</dt><dd>${e.where}</dd><dt>대상</dt><dd>${e.who}</dd><dt>영역</dt><dd>${Z[e.z][0]}</dd></dl></div></div>
+ ${e.img.length?`<div class="gal"><h3>현장 사진</h3><div class="grid">${e.img.map((m,j)=>`<button data-lb="${j}" aria-label="사진 ${j+1} 크게 보기"><img src="img/${m}.jpg" alt="${e.t} 사진 ${j+1}" loading="lazy"></button>`).join('')}</div></div>`:''}
+ <div class="nav2">${pv?`<button class="btn" data-go2="${pv.id}"><small>← 이전 부스</small>${pv.t}</button>`:''}${nx?`<button class="btn" data-go2="${nx.id}" style="text-align:end"><small>다음 부스 →</small>${nx.t}</button>`:''}</div>`;
+ room.classList.add('open');room.scrollTop=0;room.focus?.();
+ room.querySelector('#back').onclick=()=>{location.hash=''};
+ room.querySelectorAll('[data-go2]').forEach(b=>b.onclick=()=>{location.hash=b.dataset.go2});
+ room.querySelectorAll('[data-lb]').forEach(b=>b.onclick=()=>lbOpen(e.img,+b.dataset.lb));
+ document.title=e.t+' · 매원 AI 캠퍼스'}
+addEventListener('hashchange',render);
+// lightbox
+const lb=$('#lb');let LI=[],LJ=0;
+function lbShow(){lb.querySelector('img').src=`img/${LI[LJ]}.jpg`}
+function lbOpen(a,j){LI=a;LJ=j;lbShow();lb.classList.add('open')}
+function lbClose(){lb.classList.remove('open')}
+function lbGo(d){LJ=(LJ+d+LI.length)%LI.length;lbShow()}
+lb.querySelector('.x').onclick=lbClose;lb.querySelector('.pv').onclick=()=>lbGo(-1);lb.querySelector('.nx').onclick=()=>lbGo(1);
+lb.addEventListener('click',ev=>{if(ev.target===lb)lbClose()});
+// list & bar
+const list=$('#list');
+$('#openList').onclick=()=>list.classList.add('open');$('#closeList').onclick=()=>list.classList.remove('open');
+$('#items').addEventListener('click',ev=>{const b=ev.target.closest('[data-go]');if(!b)return;list.classList.remove('open');$('#intro').classList.add('hide');location.hash=b.dataset.go});
+$('#goShow').onclick=()=>{$('#intro').classList.add('hide');if(roomOpen())location.hash='';walkTo('show')};
+$('#startList').onclick=()=>{hideIntro();list.classList.add('open')};
+$('#start').onclick=()=>{$('#intro').classList.add('hide');document.body.classList.add('go');walkTo('declare')};
+camX=Math.max(0,ax*scale-innerWidth/2);camY=Math.max(0,Math.min(H*scale-innerHeight,ay*scale-innerHeight/2));
+function qtUpd(){const q=$('#qt');q.textContent=near?E[E.findIndex(e=>e.id===near)].t+' 들어가기':cur>=0?E[cur].t+'(으)로 가는 중':'첫 부스로'}
+$('#qp').onclick=()=>{hideIntro();walkTo(E[Math.max(0,cur-1)].id)};
+$('#qx').onclick=()=>{hideIntro();walkTo(E[Math.min(E.length-1,cur+1)].id)};
+$('#qe').onclick=()=>{hideIntro();if(near)openRoom(near);else walkTo(E[Math.max(0,cur)].id)};
+function hideIntro(){$('#intro').classList.add('hide');document.body.classList.add('go')}
+render();requestAnimationFrame(tick);
+}
+</script>
+</body>
+</html>
