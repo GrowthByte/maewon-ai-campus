@@ -175,29 +175,9 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--about);outline-offs
 .credit a{color:inherit}
 #editAv{position:fixed;top:72px;right:max(2vw,12px);z-index:20}
 @media(max-width:640px){.czw{grid-template-columns:1fr}#avPrev{width:130px;height:130px}#intro h1{font-size:26px}#intro .card{padding:18px}}
-
-#fin{position:fixed;inset:0;z-index:65;display:none;place-items:center;padding:16px;background:rgba(10,20,15,.45)}
-#fin.open{display:grid;animation:pop .45s cubic-bezier(.3,1.5,.5,1)}
-@keyframes pop{from{opacity:0;transform:scale(.85)}}
-#fin .card{background:var(--card);border-radius:24px;max-width:440px;width:100%;padding:26px 24px 20px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.35);border:6px solid transparent;background-image:linear-gradient(var(--card),var(--card)),repeating-linear-gradient(45deg,#1b232b 0 14px,#fff 14px 28px);background-origin:border-box;background-clip:padding-box,border-box}
-#fin .tag{display:inline-block;font-family:Jua;background:#e2457f;color:#fff;border-radius:999px;padding:4px 16px;font-size:18px}
-#fin h2{font-size:34px;margin:10px 0 4px}
-#finAv{width:120px;height:120px;border-radius:50%;background:#fff3d6;border:4px solid #f2b300;margin:8px auto 6px;display:block}
-#finMsg{margin:6px 0 12px}
-#finStat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
-#finStat div{background:var(--bg);border-radius:12px;padding:8px 4px}
-#finStat b{display:block;font-family:Jua;font-weight:400;font-size:26px}#finStat small{font-size:14px}
-#finStat span{font-size:12px;color:var(--sub)}
-.invite{background:light-dark(#fff1f5,#3a1f2a);border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:15px}
-.invite strong{color:#e2457f}
-#fin .btns{display:grid;gap:8px}
 </style>
 </head>
 <body>
-<script>
-window.addEventListener('error',function(ev){var l=document.getElementById('loading');if(l)l.innerHTML='<div style="text-align:center;padding:20px;font-family:sans-serif;font-size:16px;line-height:1.6">캠퍼스를 불러오지 못했어요.<br><small style="color:#555">'+(ev.message||'')+'</small><br><a href="2d.html" style="color:#2f5bea">2D 버전으로 보기</a> · <a href="javascript:location.reload(true)" style="color:#2f5bea">다시 시도</a></div>'},true);
-setTimeout(function(){var l=document.getElementById('loading');if(l&&!l.dataset.msg){l.dataset.msg=1;l.insertAdjacentHTML('beforeend','<div style="position:absolute;bottom:18%;left:0;right:0;text-align:center;font-family:sans-serif;font-size:15px">오래 걸리면 <a href="2d.html" style="color:#2f5bea">2D 버전으로 보기</a></div>')}},12000);
-</script>
 <div id="loading">캠퍼스를 짓는 중…</div>
 <div id="view"></div>
 <header class="bar">
@@ -221,21 +201,6 @@ setTimeout(function(){var l=document.getElementById('loading');if(l&&!l.dataset.
 </aside>
 <section id="room" aria-live="polite"></section>
 <div id="lb" role="dialog" aria-label="사진 크게 보기"><img alt=""><button class="btn x">닫기</button><button class="btn pv" aria-label="이전 사진">‹</button><button class="btn nx" aria-label="다음 사진">›</button></div>
-<div id="fin" role="dialog" aria-label="완주 축하">
-  <div class="card">
-    <span class="tag">완주</span>
-    <h2>결승점 통과!</h2>
-    <img id="finAv" alt="내 캐릭터">
-    <p id="finMsg"></p>
-    <div id="finStat"></div>
-    <div class="invite">이 모든 이야기를 <strong>12. 11.(금) 14:00 수원컨벤션센터 4층</strong> 성과발표회에서 직접 만나 보세요.</div>
-    <div class="btns">
-      <button class="btn pri" id="finShow">성과발표회 안내 보기</button>
-      <button class="btn" id="finClose">계속 둘러보기</button>
-      <button class="btn" id="finRestart">정문에서 다시 출발</button>
-    </div>
-  </div>
-</div>
 <div id="intro" role="dialog" aria-label="캐릭터 만들기">
   <div class="card" id="custom">
     <h1>매원 AI 캠퍼스에 오신 것을 환영합니다</h1>
